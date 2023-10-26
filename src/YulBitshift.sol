@@ -20,7 +20,33 @@ contract YulBitShift  {
    
     // NOT FOR USE IN PRODUCTION
     function writeBySlot(uint256 slot, uint256 value) external {
+        assembly {
+            sstore(slot, value)
+        }
+    }
 
+    // masks can be hardcoded bc variable storage slot and 
+    // offsets are fixed
+    // V and 00 = 00
+    // V or 00 = V
+
+    function writeToE(uint256 newE) external {
+        assembly{
+            // newE = 0x000000
+            let c:= sload(E.slot) // slot 0
+            // c = 0x000000
+            let clearedE := and(c, 0xfff)
+            // mask = 0x000000
+            // c = 0x 0x000000
+            // clearedE = 0x000000
+            let shiftedNewE := shl(mul(E.offset, 8), newE)
+            // shiftedNewE = 0x000000
+            // clearedE = 0x000000
+            // newVal = 0x000000
+            let newVal := or(shiftedNewE, clearedE)
+
+            sstore(C.slot, newVal)
+        }
     }
 
     function getOffsetE() external pure returns (uint256 slot, uint256 offset) {
